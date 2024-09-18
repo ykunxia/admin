@@ -6,4 +6,7 @@ public interface AdminService {
      void register(String zhanghao,String mima);
      Admin findAdmin(String zhanghao);
 
+    void updateAvatar(String avatarUrl);
+
+    void update(Admin admin);
 }

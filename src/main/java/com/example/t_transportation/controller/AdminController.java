@@ -5,23 +5,34 @@ import com.example.t_transportation.service.AdminService;
 import com.example.t_transportation.util.JwtUtil;
 import com.example.t_transportation.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
+import javax.validation.constraints.Pattern;
 import java.util.HashMap;
 import java.util.Map;
 
 
 @RestController
 @RequestMapping( "/admin")
+@Validated
 public class AdminController{
 
     @Autowired
     private AdminService adminService;
+     @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
+    @GetMapping("get")
+    public Result<String> adminInfo(@RequestHeader(name = "Authorization") String token) {
+        return Result.success("HelloWorld");
+    }
+
 
     @PostMapping(value = "/register")
-    public Result register(String username, String password){
+    public Result register(@Pattern(regexp = "^\\S{2,5}$") String username,@Pattern(regexp = "^\\S{4,16}$") String password){
         //查询用户
         Admin u= adminService.findAdmin(username);
         if(u==null){
@@ -34,22 +45,21 @@ public class AdminController{
     }
 
      @PostMapping(value = "/login")
-     public Result<String> login(String username, String password){
+     public Result<String> login(@Pattern(regexp = "^\\S{2,5}$") String username,@Pattern(regexp = "^\\S{4,16}$") String password){
         Admin loginu= adminService.findAdmin(username);
         if(loginu==null){
             //账号不存在
+
             return Result.error("账号错误");
         }
-         System.out.println(username);
         String get=loginu.getMima();
         if(!password.equals(get)){
             //等于表示密码正确，登录成功
 
             Map<String,Object> claims=new HashMap<>();
             claims.put("id",loginu.getId());
-            claims.put("zhanghao",loginu.getZhanghao());
+            claims.put("username",loginu.getZhanghao());
             String token= JwtUtil.genToken(claims);
-
 
             return Result.success(token);
 
@@ -61,9 +71,5 @@ public class AdminController{
             return Result.error("密码错误");
         }
 
-
      }
-
-
-
 }
